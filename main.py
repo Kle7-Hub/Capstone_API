@@ -4,6 +4,16 @@ import os
 
 app = FastAPI()
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or your frontend URL for more security
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 HF_API_KEY = os.getenv("HF_API_KEY")
 MODEL_URL = "https://api-inference.huggingface.co/models/umm-maybe/AI-image-detector"
 
@@ -19,4 +29,9 @@ async def scan_image(file: UploadFile = File(...)):
         data=image_bytes
     )
 
-    return response.json()
+    raw = response.json()
+
+    return {
+        "aiGenerated": raw.get("ai_generated", False), 
+        "confidence": raw.get("confidence", 0)
+    }
